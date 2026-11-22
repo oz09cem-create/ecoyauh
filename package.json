@@ -1,0 +1,15 @@
+{
+  "name": "ecoyauh",
+  "version": "2.0.0",
+  "description": "Plataforma comunitaria de limpieza p\u00fablica - Yauhquemehcan, Tlaxcala",
+  "main": "server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test test/server.test.js",
+    "publico": "node publico.js"
+  },
+  "license": "MIT"
+}

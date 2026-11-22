@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="description" content="EcoYauh: alertas del camión recolector, reportes de tiraderos con GPS, rutas y QR para Yauhquemehcan, Tlaxcala."><link rel="icon" type="image/png" href="icon-192.png"><link rel="manifest" href="manifest.json"><meta name="theme-color" content="#14633a"><link rel="apple-touch-icon" href="icon-192.png">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>EcoYauh · Limpieza pública Yauhquemehcan</title>
+<link rel="stylesheet" href="style.css"></head><body>
+<header><h1>♻️ EcoYauh</h1><p id="sub"></p></header>
+<noscript><p style="padding:16px">EcoYauh necesita JavaScript activado para funcionar.</p></noscript>
+<div id="sec" role="alert" style="display:none;position:sticky;top:0;z-index:50;background:#e8a317;color:#14211a;padding:10px 14px;font-weight:600;font-size:14px">⚠️ Esta dirección no es segura (http): el navegador bloquea el GPS. Abre el enlace https de la plataforma para conectar tu teléfono.</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<main>
+
+<section class="tab on" id="t0">
+ <div class="card"><h2>🚛 Alertas en tiempo real</h2>
+  <p class="mu">Toca el mapa para marcar tu casa (🏠). Recibirás una alerta cuando el camión recolector esté a 10 minutos o menos. <b>Simulación:</b> el camión recorre la ruta optimizada.</p>
+  <svg id="m0" class="map" viewBox="0 0 600 400"></svg>
+  <div class="grid" style="margin-top:10px">
+   <div class="stat"><span class="mu">Llega a tu casa en</span><b id="eta">—</b></div>
+   <div class="stat"><span class="mu">Estado</span><b id="st" style="font-size:15px">—</b></div>
+   <div class="stat"><span class="mu">Avance ruta</span><b id="pr">0%</b></div>
+  </div>
+  <div class="row" style="margin-top:10px">
+   <button id="mygps">📡 Mi GPS</button><button class="s" id="drv">🚛 Soy el conductor</button><button class="s" id="gtr">🗺️ Camión en Google Maps</button><span id="lv" class="tag">Simulación</span>
+   <button id="play">▶ Iniciar recorrido</button><button class="s" id="rst">↺ Reiniciar</button>
+   <button class="s" id="perm">🔔 Activar notificaciones</button>
+  </div>
+  <label class="mu">Velocidad de simulación: <span id="svl">3</span>x</label>
+  <input type="range" id="spd" min="1" max="10" value="3" style="padding:0">
+  <div id="log" class="mu"></div>
+ </div>
+ <div class="card"><h2>⏱️ Minutos para cada zona</h2>
+  <label class="mu">Hora de salida del camión</label><input type="time" id="dep" value="07:00">
+  <div id="zeta"></div>
+ </div>
+ <div class="card"><h2>🎯 Objetivo</h2>
+  <p class="mu" style="margin:0"><b>Problema:</b> acumulación de desechos en calles y camiones que pasan en horarios irregulares. <b>Impacto:</b> contaminación del suelo, drenajes tapados en lluvias y focos de infección. <b>Solución:</b> conectar a los ciudadanos con el servicio de limpieza mediante alertas, reportes con GPS, rutas eficientes y códigos QR.</p></div>
+</section>
+
+<section class="tab" id="t1">
+ <div class="card"><h2>📸 Reportar tiradero</h2>
+  <label class="mu">Foto</label><input type="file" id="ph" accept="image/*" aria-label="Foto del tiradero (cámara o galería)">
+  <img id="pv" style="max-width:100%;border-radius:10px;display:none;margin-bottom:10px">
+  <label class="mu">Tipo de residuo</label>
+  <select id="ty" aria-label="Tipo de residuo"><option>Basura doméstica</option><option>Escombro</option><option>Llantas</option><option>Residuos de jardín</option><option>Otro</option></select>
+  <label class="mu">Descripción / referencia</label><textarea id="ds" aria-label="Descripción o referencia" rows="2" placeholder="Ej. Esquina de la escuela, junto al canal"></textarea>
+  <div class="row"><button id="gps">📍 Usar mi GPS</button><span class="mu">o toca el mapa para ubicarlo</span></div>
+  <svg id="m1" class="map" viewBox="0 0 600 400" style="margin:10px 0"></svg>
+  <p class="mu" id="loc">Ubicación: sin seleccionar</p>
+  <button id="send">Enviar reporte</button>
+ </div>
+ <div class="card"><h2>Reportes ciudadanos</h2>
+  <div class="grid"><div class="stat"><b id="n1">0</b><span class="mu">Total</span></div><div class="stat"><b id="n2">0</b><span class="mu">Pendientes</span></div><div class="stat"><b id="n3">0</b><span class="mu">Atendidos</span></div></div>
+  <div id="rl"></div>
+  <div class="row np" id="radm" style="margin-top:8px;display:none"><button class="s" id="demo">Cargar ejemplos</button><button class="s d" id="clr">Borrar todo</button></div>
+ </div>
+</section>
+
+<section class="tab" id="t2">
+ <div class="card"><h2>🛰️ Optimización de rutas (GPS en camiones)</h2>
+  <p class="mu">Selecciona las colonias a visitar. El sistema calcula la ruta más corta (vecino más cercano + mejora 2-opt) y la compara con el recorrido sin planear.</p>
+  <div class="chk" id="chk"></div>
+  <div class="row np"><button class="s" id="all">Todas</button><button class="s" id="none">Ninguna</button></div>
+  <svg id="m2" class="map" viewBox="0 0 600 400" style="margin-top:10px"></svg>
+  <div class="grid" style="margin-top:10px">
+   <div class="stat"><span class="mu">Sin optimizar</span><b id="k0">—</b></div>
+   <div class="stat"><span class="mu">Optimizada</span><b id="k1" class="ok">—</b></div>
+   <div class="stat"><span class="mu">Ahorro</span><b id="k2" class="ok">—</b></div>
+  </div>
+  <div id="rtab" style="max-height:260px;overflow:auto"></div><p class="mu" id="ord"></p>
+  <p class="mu">Línea gris punteada: recorrido sin planear · Línea verde: ruta optimizada.</p>
+ </div>
+</section>
+
+<section class="tab" id="t3">
+ <div class="card"><h2>🔳 Código QR comunitario</h2>
+  <p class="mu">Se imprime y se pega en la zona. Al escanearlo con el celular muestra los días y horarios de recolección.</p>
+  <label class="mu">Zona</label><select id="zn" aria-label="Zona"></select>
+  <div style="text-align:center;margin:8px 0"><div id="qr"></div></div>
+  <div id="sch" class="card" style="background:var(--bg)"></div>
+  <div class="card" style="text-align:center"><h2>💬 Comunidad de WhatsApp</h2><p class="mu">Escanea para unirte y recibir avisos de tu zona.</p><div id="qr2" style="display:inline-block;background:#fff;padding:12px;border-radius:12px"><span id="waq"></span></div><div id="wal"></div></div>
+  <div class="row np"><button id="dl">⬇ Descargar QR</button><button class="s" id="pt">🖨 Imprimir</button></div>
+ </div>
+</section>
+<section class="tab" id="t4">
+ <div class="card"><h2>🏛️ Municipio y estado</h2>
+  <p class="mu">EcoYauh funciona en cualquier municipio de México. Elige el tuyo; cada municipio guarda sus propias zonas y horarios.</p>
+  <label class="mu">Estado</label><select id="es"></select>
+  <label class="mu">Municipio (elige o escribe)</label><input id="mu" list="mlist" autocomplete="off"><datalist id="mlist"></datalist>
+  <label class="mu">Enlace de la comunidad o grupo de WhatsApp</label><input id="wa" placeholder="Pega aquí el enlace de invitación (https://chat.whatsapp.com/...)" inputmode="url" autocapitalize="off"><button class="s" id="wasv" style="margin-bottom:10px">Guardar enlace de WhatsApp</button>
+  <div class="row"><button id="svm">Guardar municipio</button><button class="s" id="ctr">📍 Centrar mapa en mi ubicación</button></div>
+  <p class="mu">Si usas otro municipio, pulsa "Centrar mapa" estando en él para que el GPS de los reportes caiga bien en el mapa.</p>
+ </div>
+ <div class="card"><h2>🗺️ Zonas y horarios</h2>
+  <p class="mu">1) Toca el mapa donde está la zona. 2) Escribe sus datos. 3) Agrégala. (Requiere modo autoridad).</p>
+  <svg id="m4" class="map" viewBox="0 0 600 400"></svg>
+  <button class="s" id="geo" style="margin:10px 0">🔎 Ubicar las zonas automáticamente en el mapa real</button>
+  <input id="zname" aria-label="Nombre de la zona" placeholder="Nombre de la zona o colonia" style="margin-top:10px"><input id="zd" aria-label="Días de recolección" placeholder="Días (Ej. Lunes y Jueves)"><input id="zh" aria-label="Horario" placeholder="Horario (Ej. 7:00 – 9:00)">
+  <button id="zadd">Agregar zona</button><div id="zl"></div></div>
+ <div class="card" id="aqc"><h2>📲 Código de acceso (compañeros y profe)</h2>
+  <p class="mu">Que escaneen este QR con la cámara de su celular: se abre EcoYauh directo, sin instalar nada. Después pueden registrarse, reportar y ver el camión.</p>
+  <div id="aqrow" style="display:flex;flex-wrap:wrap;gap:18px;justify-content:center;text-align:center;margin:8px 0">
+   <div class="aqb"><h3 style="margin:0 0 6px;font-size:16px">🌐 Entra a la plataforma</h3><div id="aq"></div><p id="al" style="word-break:break-all;font-weight:700;margin:8px 0 4px"></p></div>
+   <div class="aqb" id="aqw" style="display:none"><h3 style="margin:0 0 6px;font-size:16px">💬 Únete al grupo de WhatsApp</h3><div id="aq2"></div><p id="awl" style="word-break:break-all;font-weight:700;margin:8px 0 4px"></p></div>
+  </div><p class="mu" id="aw" style="margin:0;text-align:center"></p>
+  <p class="mu" style="margin:8px 0 0">El QR de WhatsApp aparece aquí cuando el personal guarda el enlace del grupo (abajo, en "Enlace de la comunidad o grupo de WhatsApp").</p>
+  <div class="row np"><button id="acp">📋 Copiar enlace</button><button class="s" id="aprn">🖨️ Imprimir hoja de acceso</button></div></div>
+ <div class="card"><h2>🌍 Google Maps</h2>
+  <p class="mu">Para usar el mapa de Google Maps (el mismo del celular) hace falta una clave de API de Google. Crearla es gratis, pero Google pide activar la facturación en su consola (tiene uso gratuito mensual; revisa sus precios vigentes).</p>
+  <ol class="mu" style="margin:0 0 8px 18px;padding:0"><li>Entra a console.cloud.google.com y crea un proyecto.</li><li>Activa <b>Maps JavaScript API</b> y la facturación.</li><li>Credenciales → Crear clave de API; restríngela a tu sitio (por ejemplo http://localhost:8000/*).</li><li>Pégala aquí (modo autoridad).</li></ol>
+  <input id="gk" aria-label="Clave de API de Google Maps" placeholder="Clave de API de Google Maps (empieza con AIza…)" autocomplete="off"><div class="row"><button id="gks">Guardar clave</button><span class="tag" id="gst">Usando mapa de respaldo</span></div></div>
+ <div class="card"><h2>🔐 Autoridad, compartir y exportar</h2>
+  <p class="mu">Solo el personal del municipio puede marcar reportes como atendidos, borrarlos y editar zonas. Con el servidor en línea se entra con la clave de administrador; sin servidor, con un PIN que se guarda solo en este dispositivo.</p>
+  <div class="row"><button id="adm">🔐 Modo autoridad</button><button class="s" id="shr">📲 Compartir app</button><button class="s" id="csv">📄 Exportar reportes (CSV)</button></div>
+  <p class="mu" id="admst">Modo ciudadano</p>
+  <div id="bk" style="display:none"><p class="mu"><b>Respaldo de datos.</b> Descarga una copia de todos los reportes (con fotos), el padrón de vecinos y las zonas. Hazlo seguido, sobre todo antes de actualizar el servidor.</p>
+  <div class="row"><button class="s" id="bkdl">💾 Descargar respaldo</button><button class="s" id="bkrs">♻️ Restaurar respaldo</button><input type="file" id="bkf" accept="application/json,.json" style="display:none" aria-label="Archivo de respaldo"></div></div></div>
+</section>
+<section class="tab" id="t5">
+ <div class="card" id="regc"><h2>👤 Registro de vecino</h2>
+  <p class="mu">Regístrate para enviar reportes y recibir avisos de recolección de tu zona.</p>
+  <input id="rn" aria-label="Nombre completo" placeholder="Nombre completo" autocomplete="name"><input id="rt" aria-label="Celular, 10 dígitos" type="tel" inputmode="numeric" maxlength="10" placeholder="Celular (10 dígitos)" autocomplete="tel">
+  <label class="mu">Tu zona o colonia</label><select id="rz" aria-label="Tu zona o colonia"></select>
+  <input id="rr" aria-label="Calle y referencia" placeholder="Calle y referencia de tu casa (opcional)">
+  <p class="mu">Toca el mapa para marcar tu casa (si no, se usa el centro de tu zona):</p>
+  <button class="s" id="rgps" style="margin-bottom:8px">📍 Usar mi ubicación actual</button>
+  <svg id="m5" class="map" viewBox="0 0 600 400"></svg>
+  <div class="chk" style="margin:10px 0"><label><input type="checkbox" id="rw" checked> Quiero recibir avisos por WhatsApp</label>
+  <label><input type="checkbox" id="rp"> Acepto el aviso de privacidad: mis datos (nombre, celular, zona y ubicación de mi casa) se guardan en el sistema del municipio y se usan únicamente para avisos de recolección y reportes. Puedo borrarlos cuando quiera con el botón “Borrar mis datos”.</label></div>
+  <button id="rg">Registrarme</button></div>
+ <div class="card" id="prof"></div>
+ <div class="card" id="vadm" style="display:none"></div>
+</section>
+<section class="tab" id="t6">
+ <div class="card" id="trkc"><h2>📡 Rastreo del camión en tiempo real</h2>
+  <div class="grid"><div class="stat"><span class="mu">Llega en</span><b id="tk1">—</b></div><div class="stat"><span class="mu">Distancia</span><b id="tk2">—</b></div><div class="stat"><span class="mu">Velocidad</span><b id="tk3">—</b></div></div>
+  <p class="mu" id="tk4" style="margin:8px 0">Sin señal del camión.</p>
+  <div class="row"><button id="tkon">▶ Rastrear en el mapa</button><button class="s" id="tkdemo">🎬 Demo: camión se acerca</button></div>
+  <svg id="m6" class="map" viewBox="0 0 600 400" role="img" aria-label="Mapa en vivo del camión recolector" style="margin-top:10px"></svg>
+  <p class="mu" id="tk5" style="margin:6px 0 0">Rumbo: —</p>
+  <p class="mu" style="margin:4px 0 8px">🚛 camión (se voltea según hacia dónde va) · flecha amarilla: rumbo · línea amarilla: por dónde ha pasado · 📱/🏠 destino · línea azul punteada: hacia ti. Toca 🚛 en el mapa para volver a centrarlo.</p>
+  <p class="mu" style="margin:8px 0 0">El mapa muestra la ruta de Google del camión hacia tu teléfono (tu GPS) y se actualiza solo. Los minutos se calculan por calles (con internet). La demo va acelerada.</p>
+ </div>
+ <div class="card"><h2>🌍 Mapa de Google Maps</h2>
+  <p class="mu">El mismo mapa de Google que usas en el celular: calles, avenidas, negocios y números. Busca cualquier lugar o usa los botones.</p>
+  <div class="row"><input id="gq" aria-label="Buscar en Google Maps" placeholder="Buscar (ej. Yauhquemehcan, Tlaxcala)" style="flex:1;margin:0"><button id="gsb">🔍 Buscar</button></div>
+  <div class="row" style="margin:8px 0"><button class="s" id="g1">📍 Mi ubicación</button><button class="s" id="g2">🏠 Mi casa</button><button class="s" id="g3">🚛 Camión</button><button class="s" id="g4">🧭 Camión → mi casa</button></div>
+  <label class="mu">Ir a una zona o colonia</label><select id="gz" aria-label="Ir a una zona o colonia"></select>
+  <iframe id="gf" title="Google Maps" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen style="width:100%;height:min(66vh,520px);border:0;border-radius:12px;background:var(--map)"></iframe>
+  <p class="mu" id="gnote"></p>
+  
+  <a id="gopen" target="_blank" rel="noopener" class="mu">Abrir en la app de Google Maps</a>
+ </div>
+</section>
+</main>
+
+<nav aria-label="Secciones">
+ <button class="on" data-t="0"><span>🚛</span>Alertas</button>
+ <button data-t="1"><span>📸</span>Reportar</button>
+ <button data-t="2"><span>🛰️</span>Rutas</button>
+ <button data-t="3"><span>🔳</span>QR</button>
+ <button data-t="4"><span>⚙️</span>Config</button>
+ <button data-t="5"><span>👤</span>Registro</button>
+ <button data-t="6"><span>🌍</span>Mapa</button>
+</nav>
+
+<script src="qr.js"></script>
+<script src="app.js"></script></body></html>

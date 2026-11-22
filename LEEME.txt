@@ -1,0 +1,70 @@
+EcoYauh - Plataforma comunitaria de limpieza publica (Yauhquemehcan, Tlaxcala)
+
+1) PROBARLA EN TU COMPUTADORA
+   Necesitas Node.js 18 o mayor (https://nodejs.org). Dentro de esta carpeta:
+       node server.js            ->  abre  http://localhost:8000
+   Otro puerto:  PORT=8123 node server.js        Pruebas automaticas:  npm test
+   Clave del personal y del conductor: por defecto 1234 (SOLO para probar). Cambiala:
+       TRUCK_KEY=unaClaveLarga node server.js
+   (TRUCK_KEY sirve para el conductor y para el personal. Si quieres claves distintas, agrega ADMIN_KEY=otra.)
+
+2) PUBLICARLA PARA EL MUNICIPIO (obligatorio https: sin https el GPS del celular no funciona)
+   - Render, Railway o Fly.io: sube esta carpeta y usa  node server.js  (ya incluye render.yaml y /healthz).
+   - En Render el plan gratis BORRA los archivos en cada reinicio (se pierden reportes y registros).
+     render.yaml ya trae un plan con disco persistente (DATA_DIR=/var/data) y genera una TRUCK_KEY al azar
+     (la ves en Render > Environment). Si usas otro hosting, apunta DATA_DIR a una carpeta con disco persistente.
+   - LO MAS FACIL (1 comando, sin cuenta):   npm run publico
+       Arranca la app y crea un enlace https temporal (....trycloudflare.com). Abre ESE enlace en tu computadora y en tu celular:
+       con https el GPS funciona. Tu computadora debe seguir encendida mientras lo usen. (Necesita internet.)
+   - GRUPO DE WHATSAPP PARA COMPANEROS: en WhatsApp crea el grupo > Info del grupo > Invitar con enlace > Copiar enlace.
+     En la app: Config > Modo autoridad > pega el enlace en "Enlace de la comunidad o grupo de WhatsApp" > Guardar.
+     Se publica en el servidor: TODOS los celulares ven el QR del grupo (pestana QR y Config > Codigo de acceso).
+     Config > "Imprimir hoja de acceso" imprime una hoja con los DOS QR (plataforma + grupo de WhatsApp).
+   - GPS DEL CELULAR: solo funciona con https (o en localhost). Si abres una direccion http el app muestra un aviso amarillo.
+     Al abrir el enlace https acepta el permiso de ubicacion. iPhone: Ajustes > Privacidad > Localizacion > Safari > "Al usar la app".
+   - PARA QUE ENTREN COMPANEROS Y PROFE (codigo QR): abre la app con el enlace PUBLICO (https) > Config > "Codigo de acceso".
+     Ahi sale el QR grande de ese enlace, con botones Copiar enlace e Imprimir QR. Con el enlace en localhost el QR no sirve.
+   - Prueba rapida HOY, sin publicar nada (tu computadora debe seguir encendida con  node server.js  corriendo):
+       cloudflared tunnel --url http://localhost:8000     (sin cuenta; te da un enlace https://....trycloudflare.com)
+       o bien:  npx ngrok http 8000   (necesita cuenta gratis y su token)
+     Abre ESE enlace en tu computadora, ve a Config > Codigo de acceso y ensenales el QR.
+   - Render gratis para una presentacion (sin disco): en render.yaml cambia  plan: starter  por  plan: free  y borra el bloque
+     "disk:" y la variable DATA_DIR. Se pierden los datos al reiniciar; descarga un respaldo antes de presentar.
+   - Instalable: en el celular "Agregar a pantalla de inicio". Abre aunque no haya internet.
+
+3) COMO SE USA
+   VECINO     Registro (nombre, celular, zona, ubicacion de su casa) > Reportar tiradero (foto + GPS) > Alertas / Mapa.
+   CONDUCTOR  Alertas > "Soy el conductor" (clave). Deja la app abierta; la pantalla no se apaga.
+   PERSONAL   Config > "Modo autoridad" (clave del servidor). Puede marcar reportes como atendidos, eliminarlos,
+              ver telefonos y apellidos, ver el padron, exportar CSV, editar zonas/horarios y descargar respaldos.
+   Las ZONAS Y HORARIOS que edita el personal se publican en el servidor y TODOS los celulares los ven (QR incluido).
+   Config > "Ubicar las zonas automaticamente" busca cada colonia en el mapa real (con internet, ~45 s); las que no
+   encuentre se ajustan con "Mover aqui". Hazlo una vez con tu cuenta de personal y queda para todos.
+
+4) DATOS, PRIVACIDAD Y SEGURIDAD
+   - Los reportes, el padron de vecinos y las zonas se guardan en el servidor (data.json + carpeta photos/).
+     Descarga un RESPALDO seguido: Config > Modo autoridad > "Descargar respaldo" (y "Restaurar respaldo" para volver).
+   - Al publico solo se le muestra el primer nombre de quien reporta. Telefonos, apellidos y padron: solo con la clave.
+   - Las fotos se guardan como archivos JPEG verificados (no se acepta texto arbitrario). Todo texto se escapa en pantalla.
+   - Limites: 30 reportes y 30 registros por hora por conexion; 15 claves incorrectas por hora bloquean al intento.
+   - Sin internet: reportes y registro se guardan en el celular y se envian solos cuando vuelve la conexion.
+   - El aviso de privacidad dice que los datos se guardan en el sistema del municipio: que lo revise quien corresponda.
+
+5) MAPAS Y RASTREO (sin cambios)
+   Pestana Mapa: Google Maps real (sin clave) con busqueda, zonas, "Camion -> mi casa" y rastreo en vivo.
+   Mapa de las demas pestanas: OpenStreetMap (el servidor guarda las teselas en cache). Opcional: GOOGLE_MAPS_KEY=AIza... para
+   usar Google Maps tambien ahi. Los minutos de llegada se calculan por calles con OSRM (servidor publico, con internet).
+   Pestana Mapa tiene ademas un MAPA EN VIVO: el camion (se voltea segun su direccion), flecha de rumbo, recorrido y tu destino.
+   Boton "Demo: camion se acerca" (pestana Mapa): el camion recorre las calles con varias vueltas (con internet usa calles reales;
+   sin internet, un recorrido de ejemplo), el mapa se acerca solo, sale el aviso de "10 minutos" y pasa frente a tu casa. Dura ~1 min
+   (va acelerado). Sirve para presentar sin camion real. Si entras como personal, los demas celulares tambien lo ven.
+
+6) ARCHIVOS
+   index.html, style.css, app.js, qr.js (QR sin internet), sw.js + manifest.json (app instalable), server.js, test/, render.yaml
+
+7) NOTAS HONESTAS
+   - Nombres de las 40 localidades: INEGI via PueblosAmerica. Posiciones iniciales y horarios son de EJEMPLO hasta que el
+     personal los defina (ver punto 3).
+   - El servidor guarda en un archivo JSON: sirve muy bien para un municipio chico (miles de reportes). Si algun dia crece
+     a muchos miles de usuarios simultaneos, conviene migrar a una base de datos.
+   - La ubicacion del camion vive en memoria: si el servidor se reinicia, aparece de nuevo en cuanto el conductor transmita.

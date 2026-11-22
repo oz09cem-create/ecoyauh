@@ -1,0 +1,22 @@
+# Publicar EcoYauh en https://render.com  (revisa su documentación; los planes pueden cambiar)
+# IMPORTANTE: el plan "free" NO guarda archivos entre reinicios -> se pierden reportes y registros.
+# Para uso real usa un plan de paga con disco (abajo) o descarga respaldos seguido desde Config.
+services:
+  - type: web
+    name: ecoyauh
+    runtime: node
+    plan: starter
+    buildCommand: echo listo
+    startCommand: node server.js
+    healthCheckPath: /healthz
+    disk:
+      name: ecoyauh-datos
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: DATA_DIR
+        value: /var/data
+      - key: TRUCK_KEY          # clave del conductor y del personal; Render genera una al azar (verla en Environment)
+        generateValue: true
+      - key: GOOGLE_MAPS_KEY    # opcional
+        sync: false
