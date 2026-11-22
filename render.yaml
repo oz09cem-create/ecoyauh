@@ -5,18 +5,10 @@ services:
   - type: web
     name: ecoyauh
     runtime: node
-    plan: starter
+    plan: free
     buildCommand: echo listo
     startCommand: node server.js
     healthCheckPath: /healthz
-    disk:
-      name: ecoyauh-datos
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
-      - key: DATA_DIR
-        value: /var/data
-      - key: TRUCK_KEY          # clave del conductor y del personal; Render genera una al azar (verla en Environment)
+      - key: TRUCK_KEY
         generateValue: true
-      - key: GOOGLE_MAPS_KEY    # opcional
-        sync: false
